@@ -1,0 +1,64 @@
+server:
+  port: 9501
+
+spring:
+  cloud:
+    nacos:
+      discovery:
+        ip: 61.172.179.26
+  datasource:
+    dynamic:
+      primary: master
+      datasource:
+        master:
+          url: jdbc:mysql://192.168.0.5:3306/devp_cloud_test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2B8
+          username: root
+          password: aTze0ubeJisUbDKB
+          driver-class-name: com.mysql.cj.jdbc.Driver # 3.2.0开始支持SPI可省略此配置
+          type: com.zaxxer.hikari.HikariDataSource
+      seata: true
+      seata-mode: xa
+  cache:
+    type: redis  # 可选 redis、none、ehcache
+  redis:
+    host: 192.168.0.5 # server host
+    # password: 001e4E29a09e05b73b
+    port: 6379
+    database: 0
+  rabbitmq:
+    host: 192.168.0.5
+    port: 5672
+    username: guest
+    password: guest
+
+jwtUtils:
+  id: jwt
+  secret: 6686df7fc3a34e26a61c034d5ec82488
+  ttlMillis: 3600000
+
+#启信宝
+qixin:
+  appkey: f51ed35b-759c-4bb6-bec7-7a6b0aac6d24
+  secretKey: 0ce6febc-198b-47ed-83f1-7ed922d9508c
+  host: https://api.qixin.com/
+  profile: APIService
+
+
+#企业微信
+weChat:
+  corpid: ww21ecf19d6c519f83
+  corpsecret: G3rf94sZqkZJ90duduA-TDRGSzibhAOQhN07C4eUneA
+  agentid: 1000006
+
+
+#百度短信
+baidu:
+  sms:
+    accessKey: 9aa348551a8d40dc8077d619c6120772
+    secretAccess: 61ce9306d76a41868d1193536fda7653
+    endpoint: http://smsv3.bj.baidubce.com
+    signature:
+      id: sms-sign-WmvZrj56673
+    template:
+      code: sms-tmpl-SDDBTY24370
+      msg: sms-tmpl-snvDbF24911

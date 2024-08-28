@@ -1,0 +1,15 @@
+INSERT INTO sys_router_permission
+(id, role_id, router_id)
+VALUES(1562488744152309807, 2000, 1434612260484046852);
+INSERT INTO sys_router_permission
+(id, role_id, router_id)
+VALUES(1562488744152309810, 2000, 1440676737126588485);
+INSERT INTO sys_router_permission
+(id, role_id, router_id)
+VALUES(1562488744152309811, 2000, 1445377664732135445);
+INSERT INTO sys_router_permission
+(id, role_id, router_id)
+VALUES(1562488744152309812, 2000, 1562488744152309785);
+INSERT INTO sys_router_permission
+(id, role_id, router_id)
+VALUES(1562488744152309813, 2000, 1452754803639345202);

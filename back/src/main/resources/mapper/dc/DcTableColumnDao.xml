@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.dc.dao.DcTableColumnDao">
+  <sql id="dcTableColumnColumns">
+    <trim suffixOverrides=",">
+      a.`id` AS "id",
+      a.`name` AS "name",
+      a.`dc_table_id` AS "dcTable.id",
+      IFNULL(dcTable.`name`,'') AS "dcTable.name",
+      IFNULL(dcTable.`class_name`,'') AS "dcTable.className",
+      IFNULL(dcTable.`comments`,'') AS "dcTable.comments",
+      a.`comments` AS "comments",
+      a.`jdbc_type` AS "jdbcType",
+      a.`java_type` AS "javaType.id",
+      IFNULL(javaType.`name`,'') AS "javaType.name",
+      IFNULL(javaType.`value`,'') AS "javaType.value",
+      a.`custom_type` AS "customType.id",
+      IFNULL(customType.`name`,'') AS "customType.name",
+      IFNULL(customType.`class_name`,'') AS "customType.className",
+      IFNULL(customType.`comments`,'') AS "customType.comments",
+      a.`current_scheme_table` AS "currentSchemeTable",
+      a.`java_field` AS "javaField",
+      a.`child_fields` AS "childFields",
+      a.`associated_field` AS "associatedField",
+      a.`associated_filter` AS "associatedFilter",
+      a.`def_val` AS "defVal",
+      a.`is_pk` AS "isPk",
+      a.`is_null` AS "isNull",
+      a.`is_insert` AS "isInsert",
+      a.`is_edit` AS "isEdit",
+      a.`settings` AS "settings",
+      a.`remarks` AS "remarks",
+      a.`create_by` AS "createBy",
+      a.`create_date` AS "createDate",
+      a.`update_by` AS "updateBy",
+      a.`update_date` AS "updateDate",
+      a.`del_flag` AS "delFlag",
+      IFNULL(scheme.name,'') AS "dcTable.scheme.name",
+      IFNULL(scheme.package_name,'') AS "dcTable.scheme.packageName",
+      IFNULL(scheme.module_name,'') AS "dcTable.scheme.moduleName",
+      IFNULL(scheme.sub_module_name,'') AS "dcTable.scheme.subModuleName",
+      IFNULL(customType.filter,'') AS "customType.filter",
+      IFNULL(customScheme.name,'') AS "customType.scheme.name",
+      IFNULL(customScheme.package_name,'') AS "customType.scheme.packageName",
+      IFNULL(customScheme.module_name,'') AS "customType.scheme.moduleName",
+      IFNULL(customScheme.sub_module_name,'') AS "customType.scheme.subModuleName",
+    </trim>
+  </sql>
+  <sql id="dcTableColumnJoins">
+    LEFT JOIN dc_table dcTable ON dcTable.id = a.dc_table_id
+    LEFT JOIN sys_dict_item javaType ON javaType.id = a.java_type
+    LEFT JOIN dc_table customType ON customType.id = a.custom_type
+    LEFT JOIN dc_scheme scheme on dcTable.scheme_id = scheme.id
+    LEFT JOIN dc_scheme customScheme on customType.scheme_id = customScheme.id
+  </sql>
+  <select id="get" resultType="com.geeke.dc.entity.DcTableColumnEx">
+    SELECT
+    <include refid="dcTableColumnColumns" />
+    FROM dc_table_column a
+    <include refid="dcTableColumnJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM dc_table_column a
+    <include refid="dcTableColumnJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultType="com.geeke.dc.entity.DcTableColumnEx">
+    SELECT
+    <include refid="dcTableColumnColumns" />
+    FROM dc_table_column a
+    <include refid="dcTableColumnJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultType="com.geeke.dc.entity.DcTableColumnEx">
+    SELECT
+    <include refid="dcTableColumnColumns" />
+    FROM dc_table_column a
+    <include refid="dcTableColumnJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+  </select>
+  <!--    获取字段列表，包含获取自定义类型表是否是树形表-->
+  <select id="listAllGroupById" resultType="com.geeke.dc.entity.DcTableColumnEx">
+    SELECT
+    case when locate('parent_id',group_concat(dtc.name)) > 0 then true else false end as "customType.isTreeTable",
+    case when locate('del_flag',group_concat(dtc.name)) > 0 then true else false end as "customType.delFlagExists",
+    case when locate('parent_id',group_concat(dtc2.name)) > 0 then true else false end as "dcTable.isTreeTable",
+    IFNULL(currentTable.id, "") AS "currentTable.id",
+    IFNULL(currentTable.class_name, "") AS "currentTable.className",
+    IFNULL(currentTable.name, "") AS "currentTable.name",
+    IFNULL(currentTable.comments, "") AS "currentTable.comments",
+    case when locate('del_flag',group_concat(currentColumn.name)) > 0 then true else false end as "currentTable.delFlagExists",
+    IFNULL(customScheme.project_id, "") AS "customType.scheme.project.id",
+    IFNULL(project.name, "") AS "customType.scheme.project.name",
+    IFNULL(project.cloud_name, "") AS "customType.scheme.project.cloudName",
+    <include refid="dcTableColumnColumns" />
+    FROM dc_table_column a
+    <include refid="dcTableColumnJoins" />
+    LEFT JOIN prj_project project ON customScheme.project_id = project.id and project.del_flag = 0
+    LEFT JOIN dc_table currentTable ON currentTable.name = a.current_scheme_table and dcTable.scheme_id = currentTable.scheme_id
+    LEFT JOIN dc_table_column currentColumn on currentTable.id = currentColumn.dc_table_id <!--判断this关联业务表是否存在删除字段-->
+    left join dc_table_column dtc2 on dcTable.id = dtc2.dc_table_id <!--判断对应的业务表是否是树形（序列化报错）-->
+    LEFT JOIN dc_table_column dtc on a.custom_type = dtc.dc_table_id <!--判断custom关联业务表是否是树形|是否存在删除字段-->
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    group by a.id, currentTable.id
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO dc_table_column(
+    <trim suffixOverrides=",">
+      `id`,
+      `name`,
+      `dc_table_id`,
+      `comments`,
+      `jdbc_type`,
+      `java_type`,
+      `custom_type`,
+      `current_scheme_table`,
+      `java_field`,
+      `child_fields`,
+      `associated_field`,
+      `associated_filter`,
+      `def_val`,
+      `is_pk`,
+      `is_null`,
+      `is_insert`,
+      `is_edit`,
+      `settings`,
+      `remarks`,
+      `create_by`,
+      `create_date`,
+      `update_by`,
+      `update_date`,
+      `del_flag`,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ name },
+      #{ dcTable.id },
+      #{ comments },
+      #{ jdbcType },
+      #{ javaType.id },
+      #{ customType.id },
+      #{ currentSchemeTable },
+      #{ javaField },
+      #{ childFields },
+      #{ associatedField },
+      #{ associatedFilter },
+      #{ defVal },
+      #{ isPk },
+      #{ isNull },
+      #{ isInsert },
+      #{ isEdit },
+      #{ settings },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE dc_table_column SET
+    <trim suffixOverrides=",">
+      `name` = #{ name },
+      `dc_table_id` = #{ dcTable.id },
+      `comments` = #{ comments },
+      `jdbc_type` = #{ jdbcType },
+      `java_type` = #{ javaType.id },
+      `custom_type` = #{ customType.id },
+      `current_scheme_table` = #{ currentSchemeTable },
+      `java_field` = #{ javaField },
+      `child_fields` = #{ childFields },
+      `associated_field` = #{ associatedField },
+      `associated_filter` = #{ associatedFilter },
+      `def_val` = #{ defVal },
+      `is_pk` = #{ isPk },
+      `is_null` = #{ isNull },
+      `is_insert` = #{ isInsert },
+      `is_edit` = #{ isEdit },
+      `settings` = #{ settings },
+      `remarks` = #{ remarks },
+      `update_by` = #{ updateBy },
+      `update_date` = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE dc_table_column SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO dc_table_column(
+    <trim suffixOverrides=",">
+      `id`,
+      `name`,
+      `dc_table_id`,
+      `comments`,
+      `jdbc_type`,
+      `java_type`,
+      `custom_type`,
+      `current_scheme_table`,
+      `java_field`,
+      `child_fields`,
+      `associated_field`,
+      `associated_filter`,
+      `def_val`,
+      `is_pk`,
+      `is_null`,
+      `is_insert`,
+      `is_edit`,
+      `settings`,
+      `remarks`,
+      `create_by`,
+      `create_date`,
+      `update_by`,
+      `update_date`,
+      `del_flag`,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.name},
+        #{entity.dcTable.id},
+        #{entity.comments},
+        #{entity.jdbcType},
+        #{entity.javaType.id},
+        #{entity.customType.id},
+        #{entity.currentSchemeTable},
+        #{entity.javaField},
+        #{entity.childFields},
+        #{entity.associatedField},
+        #{entity.associatedFilter},
+        #{entity.defVal},
+        #{entity.isPk},
+        #{entity.isNull},
+        #{entity.isInsert},
+        #{entity.isEdit},
+        #{entity.settings},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE dc_table_column
+    <set>
+      <trim prefix="`name`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.name}
+        </foreach>
+      </trim>
+      <trim prefix="`dc_table_id`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.dcTable.id}
+        </foreach>
+      </trim>
+      <trim prefix="`comments`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.comments}
+        </foreach>
+      </trim>
+      <trim prefix="`jdbc_type`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.jdbcType}
+        </foreach>
+      </trim>
+      <trim prefix="`java_type`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.javaType.id}
+        </foreach>
+      </trim>
+      <trim prefix="`custom_type`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.customType.id}
+        </foreach>
+      </trim>
+      <trim prefix="`current_scheme_table`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.currentSchemeTable}
+        </foreach>
+      </trim>
+      <trim prefix="`java_field`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.javaField}
+        </foreach>
+      </trim>
+      <trim prefix="`child_fields`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.childFields}
+        </foreach>
+      </trim>
+      <trim prefix="`associated_field`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.associatedField}
+        </foreach>
+      </trim>
+      <trim prefix="`associated_filter`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.associatedFilter}
+        </foreach>
+      </trim>
+      <trim prefix="`def_val`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.defVal}
+        </foreach>
+      </trim>
+      <trim prefix="`is_pk`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.isPk}
+        </foreach>
+      </trim>
+      <trim prefix="`is_null`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.isNull}
+        </foreach>
+      </trim>
+      <trim prefix="`is_insert`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.isInsert}
+        </foreach>
+      </trim>
+      <trim prefix="`is_edit`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.isEdit}
+        </foreach>
+      </trim>
+      <trim prefix="`settings`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.settings}
+        </foreach>
+      </trim>
+      <trim prefix="`remarks`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="`update_by`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="`update_date`=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE dc_table_column
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+
+  <insert id="bulkInsertColumnByProject">
+    INSERT INTO dc_table_column(
+    <trim suffixOverrides=",">
+      `id`,
+      `name`,
+      `dc_table_id`,
+      `comments`,
+      `jdbc_type`,
+      `java_type`,
+      `custom_type`,
+      `current_scheme_table`,
+      `java_field`,
+      `child_fields`,
+      `associated_field`,
+      `associated_filter`,
+      `def_val`,
+      `is_pk`,
+      `is_null`,
+      `is_insert`,
+      `is_edit`,
+      `settings`,
+      `remarks`,
+      `create_by`,
+      `create_date`,
+      `update_by`,
+      `update_date`,
+      `del_flag`,
+    </trim>
+    )
+    select id + ${projectId}, name, dc_table_id + ${projectId}, comments, jdbc_type, java_type,
+    CASE WHEN CHAR_LENGTH(custom_type) = 0 THEN custom_type ELSE CAST(custom_type AS SIGNED) + ${projectId} END, current_scheme_table,
+    java_field, child_fields, associated_field, associated_filter, def_val, is_pk, is_null, is_insert,
+    is_edit, settings, remarks, create_by, now(), update_by, now(), 0 from dc_table_column
+    where del_flag = 0 and dc_table_id in
+    (select id from dc_table where scheme_id in (select id from dc_scheme where project_id  = #{emptyProject}))
+  </insert>
+  <update id="bulkDeleteColumnByProject">
+    UPDATE dc_table_column SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE dc_table_id in
+    (select id from dc_table where scheme_id in (select id from dc_scheme where project_id  = #{id}))
+  </update>
+</mapper>
