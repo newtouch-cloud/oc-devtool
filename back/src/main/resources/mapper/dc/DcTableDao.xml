@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.dc.dao.DcTableDao">
+  <sql id="dcTableColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.name AS "name",
+      a.source AS "source",
+      a.scheme_id AS "scheme.id",
+      IFNULL(scheme.name,'') AS "scheme.name",
+      IFNULL(scheme.package_name,'') AS "scheme.packageName",
+      IFNULL(scheme.module_name,'') AS "scheme.moduleName",
+      IFNULL(scheme.sub_module_name,'') AS "scheme.subModuleName",
+      a.class_name AS "className",
+      a.comments AS "comments",
+      a.parent_table_fk AS "parentTableFk",
+      a.is_main_table AS "isMainTable",
+      a.is_association AS "isAssociation",
+      a.association_field AS "associationField",
+      a.check_version AS "checkVersion",
+      a.filter AS "filter",
+      a.constraint_json AS "constraintJson",
+      a.order_columns AS "orderColumns",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+      a.is_one_to_one AS "isOneToOne",
+    </trim>
+  </sql>
+  <sql id="dcTableJoins">
+    LEFT JOIN dc_scheme scheme ON scheme.id = a.scheme_id
+  </sql>
+  <select id="get" resultType="com.geeke.dc.entity.DcTableEx">
+    SELECT
+    <include refid="dcTableColumns" />
+    FROM dc_table a
+    <include refid="dcTableJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM dc_table a
+    <include refid="dcTableJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultType="com.geeke.dc.entity.DcTableEx">
+    SELECT
+    <include refid="dcTableColumns" />
+    FROM dc_table a
+    <include refid="dcTableJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.is_main_table DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultType="com.geeke.dc.entity.DcTableEx">
+    SELECT
+    <include refid="dcTableColumns" />
+    FROM dc_table a
+    <include refid="dcTableJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.is_main_table DESC
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO dc_table(
+    <trim suffixOverrides=",">
+      id,
+      name,
+      source,
+      scheme_id,
+      class_name,
+      comments,
+      parent_table_fk,
+      is_main_table,
+      is_association,
+      association_field,
+      check_version,
+      filter,
+      constraint_json,
+      order_columns,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+      is_one_to_one,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ name },
+      #{ source },
+      #{ scheme.id },
+      #{ className },
+      #{ comments },
+      #{ parentTableFk },
+      #{ isMainTable },
+      #{ isAssociation },
+      #{ associationField },
+      #{ checkVersion },
+      #{ filter },
+      #{ constraintJson },
+      #{ orderColumns },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+      #{ isOneToOne },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE dc_table SET
+    <trim suffixOverrides=",">
+      name = #{ name },
+      source = #{ source },
+      scheme_id = #{ scheme.id },
+      class_name = #{ className },
+      comments = #{ comments },
+      parent_table_fk = #{ parentTableFk },
+      is_main_table = #{ isMainTable },
+      is_association = #{ isAssociation },
+      association_field = #{ associationField },
+      check_version = #{ checkVersion },
+      filter = #{ filter },
+      constraint_json = #{ constraintJson },
+      order_columns = #{ orderColumns },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+      is_one_to_one = #{ isOneToOne },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE dc_table SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO dc_table(
+    <trim suffixOverrides=",">
+      id,
+      name,
+      source,
+      scheme_id,
+      class_name,
+      comments,
+      parent_table_fk,
+      is_main_table,
+      is_association,
+      association_field,
+      check_version,
+      filter,
+      constraint_json,
+      order_columns,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+      is_one_to_one,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.name},
+        #{entity.source},
+        #{entity.scheme.id},
+        #{entity.className},
+        #{entity.comments},
+        #{entity.parentTableFk},
+        #{entity.isMainTable},
+        #{entity.isAssociation},
+        #{entity.associationField},
+        #{entity.checkVersion},
+        #{entity.filter},
+        #{entity.constraintJson},
+        #{entity.orderColumns},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+        #{entity.isOneToOne},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE dc_table
+    <set>
+      <trim prefix="name=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.name}
+        </foreach>
+      </trim>
+      <trim prefix="source=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.source}
+        </foreach>
+      </trim>
+      <trim prefix="scheme_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.scheme.id}
+        </foreach>
+      </trim>
+      <trim prefix="class_name=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.className}
+        </foreach>
+      </trim>
+      <trim prefix="comments=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.comments}
+        </foreach>
+      </trim>
+      <trim prefix="parent_table_fk=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.parentTableFk}
+        </foreach>
+      </trim>
+      <trim prefix="is_main_table=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.isMainTable}
+        </foreach>
+      </trim>
+      <trim prefix="is_association=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.isAssociation}
+        </foreach>
+      </trim>
+      <trim prefix="association_field=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.associationField}
+        </foreach>
+      </trim>
+      <trim prefix="check_version=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.checkVersion}
+        </foreach>
+      </trim>
+      <trim prefix="filter=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.filter}
+        </foreach>
+      </trim>
+      <trim prefix="constraint_json=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.constraintJson}
+        </foreach>
+      </trim>
+      <trim prefix="order_columns=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.orderColumns}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+      <trim prefix="is_one_to_one=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.isOneToOne}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE dc_table
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <select id="listTableColumn" resultType="com.geeke.dc.entity.DcTableColumnEx">
+    SELECT
+    a.COLUMN_NAME AS "name",
+    a.COLUMN_COMMENT AS "comments",
+    a.COLUMN_TYPE AS "jdbcType",
+    (CASE WHEN IS_NULLABLE = 'YES' THEN '1' ELSE '0' END) AS "isNull",
+    (ORDINAL_POSITION * 10) AS "sort",
+    (CASE WHEN a.COLUMN_KEY='PRI' THEN '1' ELSE '0' END) AS "isPk",
+    a.COLUMN_DEFAULT AS "defVal"
+    FROM information_schema.columns a
+    <where>
+      a.TABLE_SCHEMA = (select database())
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY sort ASC
+      </otherwise>
+    </choose>
+  </select>
+  <select id="listTableColumnSqlServer" resultType="com.geeke.dc.entity.DcTableColumnEx">
+    SELECT
+    col.name AS name,
+    ISNULL( ep.[value], '' ) AS comments,
+    (
+    CASE
+    WHEN col.length > 0 THEN
+    ( t.name+ '(' + CONVERT ( [nvarchar] ( 50 ), col.length ) + ')' ) ELSE t.name
+    END
+    ) AS jdbcType,
+    CASE
+    WHEN col.isnullable = 1 THEN
+    '1' ELSE '0'
+    END AS isNull,
+    ( col.colorder * 10 ) AS sort,
+    CASE
+    WHEN EXISTS (
+    SELECT
+    1
+    FROM
+    dbo.sysindexes si
+    INNER JOIN dbo.sysindexkeys sik ON si.id = sik.id
+    AND si.indid = sik.indid
+    INNER JOIN dbo.syscolumns sc ON sc.id = sik.id
+    AND sc.colid = sik.colid
+    INNER JOIN dbo.sysobjects so ON so.name = si.name
+    AND so.xtype = 'PK'
+    WHERE
+    sc.id = col.id
+    AND sc.colid = col.colid
+    ) THEN
+    '1' ELSE '0'
+    END AS isPk,
+    replace( replace( comm.text, '((', '' ), '))', '' ) AS defVal
+    FROM
+    dbo.syscolumns col
+    LEFT JOIN dbo.systypes t ON col.xtype = t.xusertype
+    INNER JOIN dbo.sysobjects obj ON col.id = obj.id
+    AND obj.xtype = 'U'
+    AND obj.status >= 0
+    LEFT JOIN dbo.syscomments comm ON col.cdefault = comm.id
+    LEFT JOIN sys.extended_properties ep ON col.id = ep.major_id
+    AND col.colid = ep.minor_id
+    AND ep.name = 'MS_Description'
+    LEFT JOIN sys.extended_properties epTwo ON obj.id = epTwo.major_id
+    AND epTwo.minor_id = 0
+    AND epTwo.name = 'MS_Description'
+    <where>
+      <bind name="tableName" value="@com.geeke.utils.JdbcTypeUtils@paramsExtract('table_name',params)" />
+      obj.name = #{tableName}
+    </where>
+    ORDER BY
+    col.colorder;
+  </select>
+  <select id="listTableColumnOracle" resultType="com.geeke.dc.entity.DcTableColumnEx">
+    <bind name="tableName" value="@com.geeke.utils.JdbcTypeUtils@paramsExtract('table_name',params)" />
+    SELECT
+    utc.COLUMN_NAME AS "name",
+    ( SELECT comments FROM user_col_comments ucc WHERE ucc.TABLE_NAME = upper(#{tableName}) AND ucc.COLUMN_NAME = utc.COLUMN_NAME ) AS "comments",
+    ( CASE WHEN utc.DATA_LENGTH > 0 THEN utc.DATA_TYPE || '(' || utc.DATA_LENGTH || ')' ELSE utc.DATA_TYPE END ) AS "jdbcType",
+    ( CASE WHEN utc.NullAble = 'Y' THEN '1' ELSE '0' END ) AS "isNull",
+    ( utc.COLUMN_ID * 10 ) AS "sort",
+    (
+    SELECT
+    COUNT( COLUMN_NAME )
+    FROM
+    user_constraints uc
+    LEFT JOIN user_cons_columns uccs ON uc.CONSTRAINT_NAME = uccs.CONSTRAINT_NAME
+    WHERE
+    uc.table_name = upper(#{tableName})
+    AND uc.CONSTRAINT_TYPE = 'P'
+    AND COLUMN_NAME = utc.COLUMN_NAME
+    ) AS "isPk",
+    utc.DATA_DEFAULT AS "defVal"
+    FROM
+    USER_TAB_COLS utc
+    WHERE
+    utc.TABLE_NAME = upper(#{tableName})
+  </select>
+
+  <insert id="bulkInsertTableByProject">
+    INSERT INTO dc_table(
+    <trim suffixOverrides=",">
+      id,
+      name,
+      source,
+      scheme_id,
+      class_name,
+      comments,
+      parent_table_fk,
+      is_main_table,
+      is_association,
+      association_field,
+      check_version,
+      filter,
+      constraint_json,
+      order_columns,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+      is_one_to_one,
+    </trim>
+    )
+    select id + ${projectId}, name, source, scheme_id + ${projectId}, class_name, comments, parent_table_fk, is_main_table,
+    is_association, association_field, check_version, `filter`, constraint_json, order_columns, remarks,
+    create_by, now(), update_by, now(), 0, is_one_to_one from dc_table
+    where del_flag = 0 and scheme_id in (select id from dc_scheme where project_id  = #{emptyProject})
+  </insert>
+  <update id="bulkDeleteTableByProject">
+    UPDATE dc_table SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE scheme_id in (select id from dc_scheme where project_id  = #{id})
+  </update>
+</mapper>
